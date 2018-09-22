@@ -1,0 +1,178 @@
+第一步：项目的开荒{
+    1.在码云上面创建一个项目，并且在本地用git同步下来进行开发
+    2.用vue-cli脚手架把项目搭起来：{
+        1.下载node,自动会把npm也会构建在其中并且设置为全局的
+        2.用npm安装vue-cli脚手架：npm i -g vue-cli，然后用命令：vue init webpack 项目名 来搭建一个脚手架项目
+        3.开始组件的模块化开发：{
+        |-src
+            |—main.js(程序的主入口文件)：{
+                涉及的知识点：{
+                    1.{
+                        // 把VueAwesomeSwiper轮播图插件与Vue绑定起来，并且让它在全局也可以使用
+                           import VueAwesomeSwiper from 'vue-awesome-swiper'
+                           //引入轮播图对应的css
+                           import 'swiper/dist/css/swiper.css'
+                           // 把轮播插件与Vue链接上
+                           Vue.use(VueAwesomeSwiper)
+
+                           // 把字体文件的设置css引入
+                            import './assets/styles/iconfont.css':{
+                                也要设置好对应的字体的相对位置,用的时候当颜色码#fsaf来使用即可
+                            }
+
+                    }
+                    2.{
+                        // 解决移动端点击延迟300毫秒
+                        import fastClick from 'fastclick'
+                        fastClick.attach(document.body)
+
+                        // 初始化css
+                        import './assets/styles/reset.css'
+
+                        // 手机1像素边框解决方案
+                        import './assets/styles/border.css'
+
+                        //会给手机浏览器添加es6cnp新语法
+                        import 'babel-polyfill'
+                    }
+                }
+
+            }
+
+            |-App.vue(程序组件的入口,全部的组件全是：{//没有排除的组件均在组件重新回来渲染时不更新，不发起ajax请求,但是会进入actived这个生命周期
+                                                    <keep-alive exclude="Detail">//对名字叫Detail的这个组件不反对它在路由视图重新渲染时发起ajax请求
+                                                        <router-view/>//通过router-Link,来改变路由的地址从而在路由里面得到对应显示的组件显示在这里
+                                                    </keep-alive>
+
+            })
+
+            |-common(对页面中的公共的组件的包括)
+                |-fade(这个文件夹下面的组件实现了动画的隐藏和显示))：{
+                    <transition>
+                        <slot></slot>//在这个地方接收到父亲写在子组件里面传过来的要动画的组件
+                    </transition>
+                }
+                |-gallary(画廊组件的实现)：{
+                     swiperOptions: {
+                        pagination: '.swiper-pagination',//在轮播图里放滚动的小点，pagination(标记页数)
+                        paginationType: 'fraction',//标记页数的类型
+                        observeParents: true,//当swiper的父元素发生变化时会相应的产生swiper的变化
+                        observer: true//当swiper 子元素变化时相应的发生swiper的更新
+                    }
+                }
+
+            |- pages(总的私有组件文件夹)
+                |- city
+                    |- components(这个文件夹下面包含了城市这个大页面组件拆分出来的小组件)
+                            |-Alphabet.vue:{
+                                   @touchstart.prevent="handleTouchStart"//触摸开始要进行初始的事件触发避免
+                                   @touchmove="handleTouchMove"
+                                   @touchend="handleTouchEnd"
+                                   @click="handleLetterClick"
+                            }
+                            |-Header.vue
+                            |-List.vue
+                            |-Search.vue：{
+                                1.//当几个组件在一起显示时要想一个组件不使用组件上场那么就可以
+                                  //使用组件的隐藏和显示来切换组件并且用绝对定位来覆盖其它的组件
+                                2.<div
+                                    class="search-content"
+                                    ref="search"
+                                    v-show="keyword"
+                                 >
+                                3.import Bscroll from 'better-scroll'
+                                   mounted () {// 让滚动条滚起来
+                                   this.scroll = new Bscroll(this.$refs.search)
+                                }
+                                 
+                            }
+                    |-City.vue(这个组件每次否则从数据仓库里面把数据获得之后再分发给它的小组件)
+                |- detail
+                    |- components(这个文件夹下面包含了城市这个大页面组件拆分出来的小组件)：{
+                        涉及到了递归组件，画廊，还有伴随滚动条的滚动导航条渐隐渐显是动态改变透明度来实现的，还有封装的动画的实现
+                    }
+                    |-Detail.vue(这个组件每次否则从数据仓库里面把数据获得之后再分发给它的小组件)
+                |- home
+                    |- components(这个文件夹下面包含了城市这个大页面组件拆分出来的小组件)
+                        |-Header.vue:{
+                            1.@import '~styles/varibles.styl';//当用到项目自定义的配置变量时在css中要加~,import导入样式时要加@
+                            2.:{
+                                原来html设置的font-size将作为rem的参照对象
+                                $是styl文件配置的变量通过引用过来使用，引用时可以起别名在webpack配置中设置
+                            }
+                        }
+                        |-Icons.vue：{
+                            1：{
+                                 swiperOption: {
+                                    autoplay: false;//轮播图不自动播放
+                                 }
+                            }
+                            2.ellipsis()在样式里面写一个函数然后实现一组的css功能
+                            3..icons >>> .swiper-container//表示在这个父类名的子类名里面的样式会被穿透设置在不在本页面添加的类名而是动态添加的
+                        }
+                        |-Recommend.vue
+                        |-Swiper.vue:{
+                            /* 通过对height=0,overflow:hidden,padding-bottom:31.2,就是设置高和宽的比例
+                            .wrapper >>>表示这个组件的样式不受局限只要它下面包含的这个类 这个就可以
+                            */
+                        }
+                        |-Weekend.vue
+
+                    |-Home.vue(这个组件每次否则从数据仓库里面把数据获得之后再分发给它的小组件):{
+                        1.:{
+                            //用来法ajax请求的插件
+                          import axios from 'axios'
+                        }
+                        2.{
+                            //引入vuex插件
+                             import { mapState } from 'vuex'
+                             computed: {
+                             ...mapState(['city'])
+                            },
+                        }
+                        3.{
+                            activated() {//当页面发生变化时数据无论变化与否都会触发这个函数
+                                if (this.lastCity !== this.city) {
+                                this.lastCity = this.city
+                                this.getHomeInfo()
+                            }
+                        }
+                    }
+
+            |-router
+                |-index.js(对项目路由文件的编写)
+            
+            |-store(对数据仓库数据的管理,这里的数据是公用的让每一个组件都会可能因为这里的数据发生变化对应的组件也会变化)
+                |-index.js
+                |—mutation.js
+                |-stat.js
+
+        |-static(模拟后台appach服务器的接口)
+            |-mock
+                |-city.json
+                |-detail.json
+                |-index.json
+
+        |-build
+            |-webpack.base.conf.js (webpack基础配置)：{
+                 alias: {//对要用的文件会替换成对应的项
+                    'vue$': 'vue/dist/vue.esm.js',
+                    '@': resolve('src'),
+                    'styles': resolve('src/assets/styles'),
+                    'common': resolve('src/common')
+                }
+            }
+        |-config
+            |-index.js(项目的一些配置变量)：{
+                1.{
+                    pathRewrite:{//对后台api发起ajax请求时把api路径替换为对应设置的项
+                        '^/api':'/static/mock'
+                    }
+                }
+                2.{
+                    build:
+                    assetsPublicPath: '/',//在文件npm run build 生成的文件默认的根目录时appach,与api后台接口同级,如果要给它外层包一个文件夹则在这里设置
+                }
+            }
+    }
+}
